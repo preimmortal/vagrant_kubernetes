@@ -8,7 +8,6 @@ Usage:
     vagrant up
 
 Plugins:
-    vagrant-ignition (0.0.3, global)
     vagrant-libvirt (0.0.45, global)
     vagrant-mutate (1.2.0, global)
 

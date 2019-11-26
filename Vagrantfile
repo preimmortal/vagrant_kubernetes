@@ -1,12 +1,38 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-ENV['VAGRANT_DEFAULT_PROVIDER'] = 'libvirt'
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 
-Vagrant.configure("2") do |config|
-  config.vm.box = "coreos_production_vagrant_virtualbox"
-  config.vm.provider :libvirt do |v|
-    v.cpus = 2
-    v.memory = 2048
+Vagrant.configure(2) do |config|
+
+  config.vm.provision "shell", path: "bootstrap.sh"
+
+  # Kubernetes Master Server
+  config.vm.define "centos_km" do |kmaster|
+    kmaster.vm.box = "centos/7"
+    kmaster.vm.hostname = "centoskm.example.com"
+    kmaster.vm.network "private_network", ip: "172.42.42.100"
+    kmaster.vm.provider "libvirt" do |v|
+      v.memory = 2048
+      v.cpus = 2
+    end
+    kmaster.vm.provision "shell", path: "bootstrap_kmaster.sh"
   end
+
+  NodeCount = 1
+
+  # Kubernetes Worker Nodes
+  (1..NodeCount).each do |i|
+    config.vm.define "centos_kw#{i}" do |workernode|
+      workernode.vm.box = "centos/7"
+      workernode.vm.hostname = "centoskw#{i}.example.com"
+      workernode.vm.network "private_network", ip: "172.42.42.10#{i}"
+      workernode.vm.provider "libvirt" do |v|
+        v.memory = 1024
+        v.cpus = 1
+      end
+      workernode.vm.provision "shell", path: "bootstrap_kworker.sh"
+    end
+  end
+
 end
